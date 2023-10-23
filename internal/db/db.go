@@ -80,14 +80,14 @@ func (db *DB) GetOrderByID(oid int64) (Order, error) {
 	var o Order
 	var payment_id_fk int64
 	var delivery_id_fk int64
-	var items_id_fk int64
+	var items_id_fk []int64
 
 	// Сбор данных об Order
 	err := db.pool.QueryRow(context.Background(), `SELECT OrderUID, TrackNumber, Entry, delivery_id_fk, payment_id_fk, items_id_fk, Locale, 
 	InternalSignature, CustomerID, TrackNumber, DeliveryService, Shardkey, SmID, DateCreated, OofShard FROM orders WHERE id = $1`, oid).Scan(&o.OrderUID, &o.TrackNumber, &o.Entry,
 	&delivery_id_fk, &payment_id_fk, &items_id_fk, &o.Locale, &o.InternalSignature, &o.CustomerID, &o.TrackNumber, &o.DeliveryService, &o.Shardkey, &o.SmID, &o.DateCreated, &o.OofShard)
 	if err != nil {
-		return o, errors.New("unable to get order from database")
+		return o, err //ors.New("unable to get order from database")
 	}
 
 	// Сбор данных о Payment
@@ -115,10 +115,10 @@ func (db *DB) GetOrderByID(oid int64) (Order, error) {
 		}
 		// Сбор данных об Items
 		err = db.pool.QueryRow(context.Background(), `SELECT ChrtID, TrackNumber, Price, Rid, Name, Sale, Size, TotalPrice, NmID, Brand, Status 
-		FROM items WHERE id = $1`, itemID).Scan(&item.ChrtID, &item.Price, &item.Rid, &item.Name, &item.Sale, &item.Size,
+		FROM items WHERE id = $1`, itemID).Scan(&item.ChrtID, &item.TrackNumber, &item.Price, &item.Rid, &item.Name, &item.Sale, &item.Size,
 			&item.TotalPrice, &item.NmID, &item.Brand, &item.Status)
 		if err != nil {
-			return o, errors.New("unable to get item from database")
+			return o, err//ors.New("unable to get item from database")
 		}
 		o.Items = append(o.Items, item)
 	}
